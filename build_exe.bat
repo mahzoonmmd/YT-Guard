@@ -8,4 +8,4 @@ pyinstaller --noconfirm --windowed --name YTGuard --icon assets\icon.ico ^
   --add-data "assets;assets" --collect-all imageio_ffmpeg main.py
 echo.
 echo Done: dist\YTGuard\YTGuard.exe
-pause
+

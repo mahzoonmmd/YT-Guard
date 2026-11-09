@@ -37,6 +37,7 @@ DEFAULT_SETTINGS = {
     "ffmpeg_path": "",
     "report_language": "fa",
     "language": "fa",
+    "prereqs_skipped": False,
 }
 
 

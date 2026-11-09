@@ -190,6 +190,8 @@ class SettingsPage(QWidget):
         nf.addRow(label(tr("تعداد فریم (OpenAI)"), wrap=False), self.frames)
         nf.addRow(label(tr("مسیر ffmpeg"), wrap=False), ffrow)
         nf.addRow("", self.ff_status)
+        prb = QPushButton(tr("نصب/بررسی پیش‌نیازها")); prb.clicked.connect(self.open_prereqs)
+        nf.addRow("", prb)
         nc.lay.addLayout(nf)
         lay.addWidget(nc)
 
@@ -201,6 +203,11 @@ class SettingsPage(QWidget):
         lay.addWidget(self.msg)
         lay.addWidget(label(tr(f"{APP_NAME_FA} نسخه {APP_VERSION}"), muted=True))
         lay.addStretch(1)
+        self.update_ff_status()
+
+    def open_prereqs(self):
+        from .prereq_dialog import PrereqDialog
+        PrereqDialog(self.ctx, self).exec()
         self.update_ff_status()
 
     def on_language_changed(self):

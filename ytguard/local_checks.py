@@ -40,6 +40,11 @@ def find_ffmpeg(custom: str = "") -> Optional[str]:
     cands = []
     if custom:
         cands.append(custom)
+    try:
+        from .storage import data_dir
+        cands.append(str(data_dir() / "ffmpeg" / ("ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg")))
+    except Exception:
+        pass
     w = shutil.which("ffmpeg")
     if w:
         cands.append(w)

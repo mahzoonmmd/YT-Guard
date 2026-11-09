@@ -24,6 +24,9 @@ def main():
     ctx = AppContext()
     win = MainWindow(ctx, family)
     win.show()
+    from ytguard.prereq_dialog import maybe_show_first_run
+    from PyQt6.QtCore import QTimer
+    QTimer.singleShot(250, lambda: maybe_show_first_run(ctx, win))
     sys.exit(app.exec())
 
 

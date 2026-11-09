@@ -94,3 +94,8 @@ If this project helps you, please **star ⭐ the repo** and **follow [@mahzoonmm
 اگه به دردت خورد، به ریپو **Star ⭐** بده و منو **Follow** کن.
 
 Made by **Mohammadali Mahzoon** · Font: [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (OFL)
+
+
+## Installer / نصب‌کننده
+- EN: Run `build_installer.bat` on Windows (needs Python + [Inno Setup 6](https://jrsoftware.org/isdl.php)). It builds the app and produces `installer_output\YTGuard-Setup-1.0.0.exe`. On first launch the app shows a prerequisites window (FFmpeg, VC++ Runtime) with a live checklist and overall progress.
+- FA: روی ویندوز `build_installer.bat` رو اجرا کن (به Python و Inno Setup 6 نیاز داره). فایل نصبی ساخته می‌شه و اولین بار که برنامه باز بشه، پنجره نصب پیش‌نیازها با لیست و درصد پیشرفت نمایش داده می‌شه.
