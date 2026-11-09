@@ -99,3 +99,10 @@ Made by **Mohammadali Mahzoon** · Font: [Vazirmatn](https://github.com/rastiker
 ## Installer / نصب‌کننده
 - EN: Run `build_installer.bat` on Windows (needs Python + [Inno Setup 6](https://jrsoftware.org/isdl.php)). It builds the app and produces `installer_output\YTGuard-Setup-1.0.0.exe`. On first launch the app shows a prerequisites window (FFmpeg, VC++ Runtime) with a live checklist and overall progress.
 - FA: روی ویندوز `build_installer.bat` رو اجرا کن (به Python و Inno Setup 6 نیاز داره). فایل نصبی ساخته می‌شه و اولین بار که برنامه باز بشه، پنجره نصب پیش‌نیازها با لیست و درصد پیشرفت نمایش داده می‌شه.
+
+
+## New in this version / تازه‌ها
+- **Why no views? / چرا ویو نمی‌گیره؟** — funnel diagnosis (impressions → CTR → retention → discovery → audience fit → policy) from title, thumbnail, description, optional video and your Studio numbers; local thumbnail checks (size, contrast, clutter, faces), title A/B ranking.
+- **Idea check / بررسی ایده** — verdict, scores (views, monetization, policy safety, originality, competition), pros/cons, policy risks, better angles, titles, hooks and a cheap-test list.
+- **Channel review / بررسی کانال** — recent videos via the free YouTube Data API key (or a pasted list): best/worst videos vs the channel's own median, title-feature effects, thumbnail comparison (top vs bottom), YPP checklist (500/1,000 subs tiers) and a prioritized plan.
+- Reports can be copied or saved as Markdown. AI has no access to YouTube's private analytics or live trends; demand statements are estimates.

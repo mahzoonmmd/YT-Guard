@@ -32,13 +32,18 @@ DIR = Qt.LayoutDirection.RightToLeft if IS_RTL else Qt.LayoutDirection.LeftToRig
 
 _pairs: list[tuple[str, str]] = []
 if LANG == "en":
-    from . import i18n_en_checks, i18n_en_misc, i18n_en_ui
+    from . import i18n_en_checks, i18n_en_misc, i18n_en_pro, i18n_en_ui
     seen = {}
-    for mod in (i18n_en_ui, i18n_en_checks, i18n_en_misc):
+    short = {}  # very short words of the pro pages: whole-string matches only (never replaced inside longer strings)
+    for mod in (i18n_en_ui, i18n_en_checks, i18n_en_misc, i18n_en_pro):
         for fa, en in mod.PAIRS:
-            seen[fa.replace(_ZW, "")] = en
+            k = fa.replace(_ZW, "")
+            if mod is i18n_en_pro and len(k) < 6:
+                short[k] = en
+            else:
+                seen[k] = en
     _pairs = sorted(seen.items(), key=lambda kv: -len(kv[0]))
-    _exact = dict(seen)
+    _exact = {**seen, **short}
 
 
 def tr(text):

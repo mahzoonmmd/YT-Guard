@@ -38,6 +38,8 @@ DEFAULT_SETTINGS = {
     "report_language": "fa",
     "language": "fa",
     "prereqs_skipped": False,
+    "youtube_key": "",
+    "youtube_base": "https://www.googleapis.com/youtube/v3",
 }
 
 

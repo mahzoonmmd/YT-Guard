@@ -173,6 +173,18 @@ class SettingsPage(QWidget):
         oc.lay.addLayout(of)
         lay.addWidget(oc)
 
+        yc = Card(tr("YouTube API (برای «بررسی کانال»)"))
+        yf = QFormLayout(); yf.setLabelAlignment(Qt.AlignmentFlag.AlignLeading)
+        self.yt_key = QLineEdit(s["youtube_key"]); self.yt_key.setEchoMode(QLineEdit.EchoMode.Password); self.yt_key.setPlaceholderText("AIza…")
+        yf.addRow(label("YouTube Data API v3 Key", wrap=False), self.yt_key)
+        yc.lay.addLayout(yf)
+        yl = QLabel(tr('<a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" style="color:#FF0000">فعال‌سازی YouTube Data API v3 در Google Cloud</a>'
+                       ' — بعد در «Credentials» یک API key بساز و اینجا بذار.'))
+        yl.setOpenExternalLinks(True); yl.setWordWrap(True)
+        yc.lay.addWidget(yl)
+        yc.lay.addWidget(label(tr("رایگانه (۱۰٬۰۰۰ واحد در روز؛ هر تحلیل کانال حدود ۵ واحد). بدون این کلید هم می‌تونی از «لیست دستی» استفاده کنی. این کلید جدا از کلید Gemini‌ه."), muted=True))
+        lay.addWidget(yc)
+
         nc = Card(tr("شبکه و پردازش"))
         nf = QFormLayout(); nf.setLabelAlignment(Qt.AlignmentFlag.AlignLeading)
         self.proxy = QLineEdit(s["proxy"]); self.proxy.setPlaceholderText(tr("http://127.0.0.1:10809  یا  socks5h://127.0.0.1:10808"))
@@ -250,6 +262,7 @@ class SettingsPage(QWidget):
         s["openai_key"] = self.o_key.text().strip()
         s["openai_model"] = self.o_model.currentText().strip()
         s["proxy"] = self.proxy.text().strip()
+        s["youtube_key"] = self.yt_key.text().strip()
         s["compress_before_upload"] = self.compress.isChecked()
         s["compress_height"] = self.comp_h.value()
         s["frames_for_openai"] = self.frames.value()

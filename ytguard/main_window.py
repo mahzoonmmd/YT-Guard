@@ -11,6 +11,7 @@ from . import APP_NAME, APP_NAME_FA, TAGLINE_FA
 from .context import AppContext
 from .page_check import CheckPage
 from .page_misc import AboutPage, HistoryPage, RulesPage, SettingsPage
+from .page_pro import ChannelPage, IdeaPage, ReachPage
 from .page_tools import ToolsPage
 from .theme import qss
 from .widgets import LogoBadge, label, make_app_icon, repolish
@@ -59,13 +60,17 @@ class MainWindow(QMainWindow):
         sl.setSpacing(4)
         self.stack = QStackedWidget()
         self.check = CheckPage(ctx)
+        self.reach = ReachPage(ctx)
+        self.idea = IdeaPage(ctx)
+        self.channel = ChannelPage(ctx)
         self.tools = ToolsPage(ctx)
         self.hist = HistoryPage(ctx)
         self.rules = RulesPage(ctx)
         self.settings_page = SettingsPage(ctx)
         self.about = AboutPage()
         self.nav_btns: list[QPushButton] = []
-        for i, (text, page) in enumerate(((tr("🔍  بررسی ویدیو"), self.check), (tr("🛠  ابزارهای یوتیوبر"), self.tools),
+        for i, (text, page) in enumerate(((tr("🔍  بررسی ویدیو"), self.check), (tr("🩺  چرا ویو نمی‌گیره؟"), self.reach), (tr("💡  بررسی ایده"), self.idea),
+                                         (tr("📺  بررسی کانال"), self.channel), (tr("🛠  ابزارهای یوتیوبر"), self.tools),
                                          (tr("🕘  تاریخچه"), self.hist), (tr("📜  قوانین"), self.rules), (tr("⚙  تنظیمات"), self.settings_page), (tr("💬  درباره سازنده"), self.about))):
             b = QPushButton(text)
             b.setProperty("nav", True)

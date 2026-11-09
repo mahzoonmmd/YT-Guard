@@ -120,7 +120,8 @@ class BaseProvider:
     def prepare(self, path: str, duration: float, progress: ProgressCb, cancel=None, proxy_file: str | None = None) -> dict:
         raise NotImplementedError
 
-    def generate(self, ref: dict, system: str, prompt: str, json_mode: bool, cancel=None, temperature=0.2) -> str:
+    def generate(self, ref: dict | None, system: str, prompt: str, json_mode: bool, cancel=None, temperature=0.2, images=None) -> str:
+        """ref=None -> text/images only. images: list of (caption, mime, bytes)."""
         raise NotImplementedError
 
     def list_models(self) -> list[str]:
@@ -210,13 +211,19 @@ class GeminiProvider(BaseProvider):
             raise AIError(tr("Gemini نتونست این ویدیو رو پردازش کنه (فرمت/کدک نامعتبر؟)."))
         return {"provider": "gemini", "name": name, "uri": info.get("uri"), "mime": info.get("mimeType", mime), "ts": time.time()}
 
-    def generate(self, ref, system, prompt, json_mode, cancel=None, temperature=0.2):
+    def generate(self, ref, system, prompt, json_mode, cancel=None, temperature=0.2, images=None):
         model = (self.s["gemini_model"] or "gemini-3.5-flash").strip()
+        parts = []
+        if ref:
+            parts.append({"file_data": {"mime_type": ref["mime"], "file_uri": ref["uri"]}})  # video first, text after (per Google's guidance)
+        for cap, mime, data in images or []:
+            if cap:
+                parts.append({"text": cap})
+            parts.append({"inline_data": {"mime_type": mime, "data": base64.b64encode(data).decode()}})
+        parts.append({"text": prompt})
         body = {
             "systemInstruction": {"parts": [{"text": system}]},
-            "contents": [{"role": "user", "parts": [
-                {"file_data": {"mime_type": ref["mime"], "file_uri": ref["uri"]}},  # video first, text after (per Google's guidance)
-                {"text": prompt}]}],
+            "contents": [{"role": "user", "parts": parts}],
             "generationConfig": {"temperature": temperature, "maxOutputTokens": 16384},
         }
         if json_mode:
@@ -270,14 +277,19 @@ class OpenAICompatProvider(BaseProvider):
         return {"provider": "openai", "duration": duration, "ts": time.time(),
                 "frames": [(t, base64.b64encode(b).decode()) for t, b in frames]}
 
-    def generate(self, ref, system, prompt, json_mode, cancel=None, temperature=0.2):
+    def generate(self, ref, system, prompt, json_mode, cancel=None, temperature=0.2, images=None):
         model = (self.s["openai_model"] or "").strip()
         if not model:
             raise AIError(tr("نام مدل OpenAI-compatible در تنظیمات وارد نشده (مدلی که تصویر پشتیبانی کنه)."))
-        content = [{"type": "text", "text": "Frames sampled from the video at seconds: "
-                    + ", ".join(f"{t:.0f}" for t, _ in ref["frames"]) + "\n\n" + prompt}]
-        for t, b in ref["frames"]:
-            content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b}"}})
+        head = ("Frames sampled from the video at seconds: " + ", ".join(f"{t:.0f}" for t, _ in ref["frames"]) + "\n\n") if ref else ""
+        content = [{"type": "text", "text": head + prompt}]
+        if ref:
+            for t, b in ref["frames"]:
+                content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b}"}})
+        for cap, mime, data in images or []:
+            if cap:
+                content.append({"type": "text", "text": cap})
+            content.append({"type": "image_url", "image_url": {"url": f"data:{mime};base64,{base64.b64encode(data).decode()}"}})
         body = {"model": model, "temperature": temperature,
                 "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}]}
         if json_mode:
