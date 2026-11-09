@@ -211,3 +211,16 @@ def rules_for_prompt() -> str:
 
 def rule_title(rid: str) -> str:
     return RULES.get(rid, {}).get("title", rid)
+
+
+# ---- English UI: override the Persian texts above
+from .i18n import LANG  # noqa: E402
+
+if LANG == "en":
+    from .i18n_en_rules import CONFIDENCE_EN, IMPACT_EN, NICHES_EN, RULES_EN
+
+    for _rid, _en in RULES_EN.items():
+        RULES[_rid].update(_en)
+    CONFIDENCE_FA.update(CONFIDENCE_EN)
+    IMPACT_FA.update(IMPACT_EN)
+    NICHES[:] = [(k, NICHES_EN.get(k, v)) for k, v in NICHES]

@@ -36,6 +36,7 @@ DEFAULT_SETTINGS = {
     "frames_for_openai": 12,
     "ffmpeg_path": "",
     "report_language": "fa",
+    "language": "fa",
 }
 
 

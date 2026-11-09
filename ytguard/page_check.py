@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog, QFileD
                              QLabel, QLineEdit, QMessageBox, QProgressBar, QPushButton, QRadioButton, QScrollArea,
                              QVBoxLayout, QWidget)
 
+from .i18n import DIR, IS_RTL, tr
 from . import report as report_mod
 from .analysis import VERDICT_FA
 from .context import AppContext
@@ -19,7 +20,7 @@ from .workers import AnalyzeWorker, FollowUpWorker, InfoWorker
 
 def combo(items: list[tuple[str, str]]) -> QComboBox:
     c = QComboBox()
-    c.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+    c.setLayoutDirection(DIR)
     for key, text in items:
         c.addItem(text, key)
     return c
@@ -28,36 +29,36 @@ def combo(items: list[tuple[str, str]]) -> QComboBox:
 class FollowUpDialog(QDialog):
     def __init__(self, questions: list[dict], parent=None):
         super().__init__(parent)
-        self.setWindowTitle("AI چند سوال از تو داره")
-        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        self.setWindowTitle(tr("AI چند سوال از تو داره"))
+        self.setLayoutDirection(DIR)
         self.setMinimumWidth(520)
         self.q = questions
         self.groups: list[tuple[QButtonGroup, list[QRadioButton], QLineEdit]] = []
         lay = QVBoxLayout(self)
-        lay.addWidget(label("این جواب‌ها روی نتیجه اثر دارن. هر چی مطمئنی جواب بده؛ نمی‌دونی؟ «نمی‌دونم» رو بزن.", muted=True))
+        lay.addWidget(label(tr("این جواب‌ها روی نتیجه اثر دارن. هر چی مطمئنی جواب بده؛ نمی‌دونی؟ «نمی‌دونم» رو بزن."), muted=True))
         for q in questions:
             box = Card()
             box.lay.addWidget(label(q["question"], h2=True))
             if q.get("why"):
-                box.lay.addWidget(label("چرا می‌پرسم: " + q["why"], muted=True))
+                box.lay.addWidget(label(tr("چرا می‌پرسم: ") + q["why"], muted=True))
             g = QButtonGroup(self)
             rbs = []
-            for o in q["options"] + ["نمی‌دونم"]:
+            for o in q["options"] + [tr("نمی‌دونم")]:
                 rb = QRadioButton(o)
                 g.addButton(rb)
                 box.lay.addWidget(rb)
                 rbs.append(rb)
             rbs[-1].setChecked(True)
             extra = QLineEdit()
-            extra.setPlaceholderText("توضیح بیشتر (اختیاری)")
+            extra.setPlaceholderText(tr("توضیح بیشتر (اختیاری)"))
             box.lay.addWidget(extra)
             self.groups.append((g, rbs, extra))
             lay.addWidget(box)
         row = QHBoxLayout()
-        ok = QPushButton("ارسال و بررسی مجدد")
+        ok = QPushButton(tr("ارسال و بررسی مجدد"))
         ok.setProperty("primary", True)
         ok.clicked.connect(self.accept)
-        skip = QPushButton("بی‌خیال")
+        skip = QPushButton(tr("بی‌خیال"))
         skip.clicked.connect(self.reject)
         row.addWidget(ok)
         row.addWidget(skip)
@@ -67,7 +68,7 @@ class FollowUpDialog(QDialog):
     def answers(self) -> list[dict]:
         out = []
         for q, (g, rbs, extra) in zip(self.q, self.groups):
-            ans = next((r.text() for r in rbs if r.isChecked()), "نمی‌دونم")
+            ans = next((r.text() for r in rbs if r.isChecked()), tr("نمی‌دونم"))
             if extra.text().strip():
                 ans += " — " + extra.text().strip()
             out.append({"question": q["question"], "answer": ans})
@@ -83,7 +84,7 @@ class CheckPage(QWidget):
         self.worker = None
         self.info = None
         self.report = None
-        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        self.setLayoutDirection(DIR)
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -97,8 +98,8 @@ class CheckPage(QWidget):
         self.lay.setContentsMargins(24, 18, 24, 24)
         self.lay.setSpacing(14)
 
-        self.lay.addWidget(label("بررسی ویدیو با قوانین یوتیوب", h1=True))
-        self.lay.addWidget(label("ویدیو رو قبل از آپلود بنداز اینجا. کپی‌رایت، افشای AI، محتوای غیراصیل، Shorts/لانگ و مشکلات ریزش بیننده چک می‌شه.", muted=True))
+        self.lay.addWidget(label(tr("بررسی ویدیو با قوانین یوتیوب"), h1=True))
+        self.lay.addWidget(label(tr("ویدیو رو قبل از آپلود بنداز اینجا. کپی‌رایت، افشای AI، محتوای غیراصیل، Shorts/لانگ و مشکلات ریزش بیننده چک می‌شه."), muted=True))
 
         self.drop = DropZone()
         self.drop.fileDropped.connect(self.load_file)
@@ -108,41 +109,41 @@ class CheckPage(QWidget):
         self.lay.addWidget(self.file_note)
 
         # ---- questionnaire
-        self.form_card = Card("چند سوال سریع (دقت نتیجه رو بالا می‌بره)")
+        self.form_card = Card(tr("چند سوال سریع (دقت نتیجه رو بالا می‌بره)"))
         form = QFormLayout()
-        form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
-        form.setFormAlignment(Qt.AlignmentFlag.AlignRight)
+        form.setLabelAlignment(Qt.AlignmentFlag.AlignLeading)
+        form.setFormAlignment(Qt.AlignmentFlag.AlignLeading)
         form.setHorizontalSpacing(18)
         form.setVerticalSpacing(10)
-        self.c_fmt = combo([("auto", "خودکار (از روی ویدیو)"), ("long", "ویدیوی لانگ"), ("short", "Shorts")])
-        self.c_ai = combo([("none", "از AI استفاده نشده"), ("assist", "فقط کمک (ایده، اسکریپت، ادیت)"),
-                           ("mostly", "بخش عمده با AI ساخته شده"), ("full", "کامل با AI، تقریباً بدون دخالت من")])
-        self.c_voice = combo([("none", "صدای خودم / صدای واقعی"), ("own_clone", "کلون صدای خودم"),
-                              ("generic_tts", "گوینده AI / TTS عمومی"), ("real_person_clone", "کلون صدای یک فرد دیگر")])
-        self.c_vis = combo([("none", "تصویر واقعی / بدون AI"), ("stylized", "AI به سبک انیمیشن/غیرواقعی"),
-                            ("realistic", "تصویر/ویدیوی واقع‌نمای AI"), ("real_people_events", "AI از افراد یا رویدادهای واقعی")])
-        self.k_music_ai = QCheckBox("موزیک با AI ساخته شده")
-        self.c_tv = combo([("none", "کلیپ دیگران ندارم"), ("short_with_commentary", "کلیپ کوتاه با تفسیر خودم"),
-                           ("long_or_no_commentary", "کلیپ بلند یا بدون تفسیر کافی")])
-        self.c_tm = combo([("none", "موزیک ندارم / مال خودمه"), ("library_licensed", "موزیک لایسنس‌دار / Audio Library"),
-                           ("popular_song", "آهنگ معروف / تجاری"), ("unknown", "منبعش رو نمی‌دونم")])
+        self.c_fmt = combo([("auto", tr("خودکار (از روی ویدیو)")), ("long", tr("ویدیوی لانگ")), ("short", "Shorts")])
+        self.c_ai = combo([("none", tr("از AI استفاده نشده")), ("assist", tr("فقط کمک (ایده، اسکریپت، ادیت)")),
+                           ("mostly", tr("بخش عمده با AI ساخته شده")), ("full", tr("کامل با AI، تقریباً بدون دخالت من"))])
+        self.c_voice = combo([("none", tr("صدای خودم / صدای واقعی")), ("own_clone", tr("کلون صدای خودم")),
+                              ("generic_tts", tr("گوینده AI / TTS عمومی")), ("real_person_clone", tr("کلون صدای یک فرد دیگر"))])
+        self.c_vis = combo([("none", tr("تصویر واقعی / بدون AI")), ("stylized", tr("AI به سبک انیمیشن/غیرواقعی")),
+                            ("realistic", tr("تصویر/ویدیوی واقع‌نمای AI")), ("real_people_events", tr("AI از افراد یا رویدادهای واقعی"))])
+        self.k_music_ai = QCheckBox(tr("موزیک با AI ساخته شده"))
+        self.c_tv = combo([("none", tr("کلیپ دیگران ندارم")), ("short_with_commentary", tr("کلیپ کوتاه با تفسیر خودم")),
+                           ("long_or_no_commentary", tr("کلیپ بلند یا بدون تفسیر کافی"))])
+        self.c_tm = combo([("none", tr("موزیک ندارم / مال خودمه")), ("library_licensed", tr("موزیک لایسنس‌دار / Audio Library")),
+                           ("popular_song", tr("آهنگ معروف / تجاری")), ("unknown", tr("منبعش رو نمی‌دونم"))])
         self.c_niche = combo(NICHES)
-        self.k_kids = QCheckBox("ویدیو مخصوص کودکان است")
-        self.k_sponsor = QCheckBox("اسپانسر / تبلیغ پولی دارد")
-        self.k_series = QCheckBox("از این ویدیو زیاد با قالب مشابه می‌سازم")
-        self.k_mon = QCheckBox("کانال مانیتایز است (یا می‌خوام بشه)")
+        self.k_kids = QCheckBox(tr("ویدیو مخصوص کودکان است"))
+        self.k_sponsor = QCheckBox(tr("اسپانسر / تبلیغ پولی دارد"))
+        self.k_series = QCheckBox(tr("از این ویدیو زیاد با قالب مشابه می‌سازم"))
+        self.k_mon = QCheckBox(tr("کانال مانیتایز است (یا می‌خوام بشه)"))
         self.k_mon.setChecked(True)
         self.e_notes = QLineEdit()
-        self.e_notes.setPlaceholderText("هر چیز دیگه‌ای که AI باید بدونه (مثلاً موضوع، منبع کلیپ‌ها…)")
-        for lbl, w in (("فرمت ویدیو", self.c_fmt), ("استفاده از AI", self.c_ai), ("صدا", self.c_voice), ("تصویر", self.c_vis),
-                       ("کلیپ دیگران", self.c_tv), ("موزیک", self.c_tm), ("موضوع کانال", self.c_niche)):
+        self.e_notes.setPlaceholderText(tr("هر چیز دیگه‌ای که AI باید بدونه (مثلاً موضوع، منبع کلیپ‌ها…)"))
+        for lbl, w in ((tr("فرمت ویدیو"), self.c_fmt), (tr("استفاده از AI"), self.c_ai), (tr("صدا"), self.c_voice), (tr("تصویر"), self.c_vis),
+                       (tr("کلیپ دیگران"), self.c_tv), (tr("موزیک"), self.c_tm), (tr("موضوع کانال"), self.c_niche)):
             form.addRow(label(lbl, wrap=False), w)
         form.addRow("", self.k_music_ai)
         form.addRow("", self.k_kids)
         form.addRow("", self.k_sponsor)
         form.addRow("", self.k_series)
         form.addRow("", self.k_mon)
-        form.addRow(label("توضیح اضافه", wrap=False), self.e_notes)
+        form.addRow(label(tr("توضیح اضافه"), wrap=False), self.e_notes)
         self.form_card.lay.addLayout(form)
         self.fmt_hint = label("", muted=True)
         self.form_card.lay.addWidget(self.fmt_hint)
@@ -150,14 +151,14 @@ class CheckPage(QWidget):
 
         # ---- actions
         row = QHBoxLayout()
-        self.btn_go = QPushButton("شروع بررسی با AI")
+        self.btn_go = QPushButton(tr("شروع بررسی با AI"))
         self.btn_go.setProperty("primary", True)
         self.btn_go.setEnabled(False)
         self.btn_go.clicked.connect(lambda: self.start(True))
-        self.btn_local = QPushButton("فقط تحلیل محلی (بدون AI)")
+        self.btn_local = QPushButton(tr("فقط تحلیل محلی (بدون AI)"))
         self.btn_local.setEnabled(False)
         self.btn_local.clicked.connect(lambda: self.start(False))
-        self.btn_cancel = QPushButton("لغو")
+        self.btn_cancel = QPushButton(tr("لغو"))
         self.btn_cancel.setVisible(False)
         self.btn_cancel.clicked.connect(self.cancel)
         row.addWidget(self.btn_go)
@@ -184,19 +185,19 @@ class CheckPage(QWidget):
     # ------------------------------------------------------------------ file
     def pick_file(self):
         exts = " ".join(f"*{e}" for e in sorted(VIDEO_EXTS))
-        p, _ = QFileDialog.getOpenFileName(self, "انتخاب ویدیو", "", f"Video ({exts});;All files (*)")
+        p, _ = QFileDialog.getOpenFileName(self, tr("انتخاب ویدیو"), "", f"Video ({exts});;All files (*)")
         if p:
             self.load_file(p)
 
     def load_file(self, path: str):
         if Path(path).suffix.lower() not in VIDEO_EXTS:
-            QMessageBox.warning(self, "فرمت نامعتبر", "این فایل ویدیو نیست.")
+            QMessageBox.warning(self, tr("فرمت نامعتبر"), tr("این فایل ویدیو نیست."))
             return
-        self.status.setText("در حال خواندن مشخصات ویدیو…")
+        self.status.setText(tr("در حال خواندن مشخصات ویدیو…"))
         self.drop.set_file(Path(path).name, "…")
         w = InfoWorker(self.ctx.settings, path)
         w.done.connect(lambda r, p=path: self._file_loaded(p, r))
-        w.failed.connect(lambda m: (self.status.setText(m), QMessageBox.warning(self, "خطا", m)))
+        w.failed.connect(lambda m: (self.status.setText(m), QMessageBox.warning(self, tr("خطا"), m)))
         self._info_worker = w
         w.start()
 
@@ -204,14 +205,14 @@ class CheckPage(QWidget):
         self.info = r["info"]
         i = self.info
         self.drop.set_file(Path(path).name, f"{fmt_ts(i['duration'])} · {i['width']}×{i['height']} · {i['fps']:.0f}fps · "
-                                             f"{i['size']/1024/1024:.0f} MB · {'عمودی' if i['orientation']=='vertical' else 'افقی' if i['orientation']=='horizontal' else 'مربع'}")
+                                             f"{i['size']/1024/1024:.0f} MB · {tr('عمودی') if i['orientation']=='vertical' else tr('افقی') if i['orientation']=='horizontal' else tr('مربع')}")
         self.path = path
         idx = self.c_fmt.findData("auto")
         self.c_fmt.setCurrentIndex(idx)
         self.guess = r["fmt"]
-        self.c_fmt.setItemText(0, f"خودکار ← {'Shorts' if r['fmt']=='short' else 'ویدیوی لانگ'}")
+        self.c_fmt.setItemText(0, tr(f"خودکار ← {'Shorts' if r['fmt']=='short' else 'ویدیوی لانگ'}"))
         if r["ambiguous"]:
-            self.fmt_hint.setText("⚠ مشخصات این ویدیو (جهت تصویر/مدت) واضح نیست. لطفاً فرمت واقعی که آپلود می‌کنی رو دستی انتخاب کن.")
+            self.fmt_hint.setText(tr("⚠ مشخصات این ویدیو (جهت تصویر/مدت) واضح نیست. لطفاً فرمت واقعی که آپلود می‌کنی رو دستی انتخاب کن."))
             self.c_fmt.setStyleSheet("border: 2px solid #FF0000;")
         else:
             self.fmt_hint.setText("")
@@ -239,7 +240,7 @@ class CheckPage(QWidget):
         if use_ai:
             ok, why = self.ctx.ai_ready()
             if not ok:
-                r = QMessageBox.question(self, "AI آماده نیست", f"{why}.\nفقط تحلیل محلی و پرسشنامه اجرا بشه؟")
+                r = QMessageBox.question(self, tr("AI آماده نیست"), tr(f"{why}.\nفقط تحلیل محلی و پرسشنامه اجرا بشه؟"))
                 if r != QMessageBox.StandardButton.Yes:
                     return
                 use_ai = False
@@ -255,7 +256,7 @@ class CheckPage(QWidget):
     def cancel(self):
         if self.worker:
             self.worker.cancel()
-            self.status.setText("در حال لغو…")
+            self.status.setText(tr("در حال لغو…"))
 
     def set_busy(self, b: bool):
         self.btn_go.setEnabled(not b and bool(getattr(self, "path", None)))
@@ -272,8 +273,8 @@ class CheckPage(QWidget):
     def on_failed(self, msg):
         self.set_busy(False)
         self.status.setText(msg)
-        if msg != "لغو شد.":
-            QMessageBox.warning(self, "خطا", msg)
+        if msg != tr("لغو شد."):
+            QMessageBox.warning(self, tr("خطا"), msg)
 
     def on_done(self, rep):
         self.set_busy(False)
@@ -315,63 +316,63 @@ class CheckPage(QWidget):
         g = ScoreGauge(theme)
         g.set_value(rep["score"], rep["verdict"], VERDICT_FA[rep["verdict"]])
         self.gauge = g
-        sumcard = Card("خلاصه")
+        sumcard = Card(tr("خلاصه"))
         i = rep["info"]
-        fmt_fa = "Shorts" if rep["format"] == "short" else "ویدیوی لانگ"
+        fmt_fa = "Shorts" if rep["format"] == "short" else tr("ویدیوی لانگ")
         sumcard.lay.addWidget(label(f"{rep['name']} — {fmt_fa} — {fmt_ts(i['duration'])}", muted=True))
         ai = rep.get("ai")
         if ai:
             sumcard.lay.addWidget(label(ai["summary"], selectable=True))
             u = ai["ai_usage"]
-            flags = [n for n, v in (("صدای AI", u["likely_ai_voice"]), ("تصویر AI", u["likely_ai_visuals"]), ("موزیک AI", u["likely_ai_music"])) if v]
-            sumcard.lay.addWidget(label("تشخیص AI: " + ("، ".join(flags) if flags else "نشانه‌ی مشخصی دیده نشد")
-                                        + f" (اطمینان {u['confidence']*100:.0f}٪)" + (f" — {u['evidence']}" if u["evidence"] else ""), selectable=True))
+            flags = [n for n, v in ((tr("صدای AI"), u["likely_ai_voice"]), (tr("تصویر AI"), u["likely_ai_visuals"]), (tr("موزیک AI"), u["likely_ai_music"])) if v]
+            sumcard.lay.addWidget(label(tr("تشخیص AI: ") + (tr("، ").join(flags) if flags else tr("نشانه‌ی مشخصی دیده نشد"))
+                                        + tr(f" (اطمینان {u['confidence']*100:.0f}٪)") + (f" — {u['evidence']}" if u["evidence"] else ""), selectable=True))
         else:
-            msg = rep.get("ai_error") or "این نتیجه فقط از تحلیل محلی و پاسخ‌های تو ساخته شده؛ بررسی AI اجرا نشد."
+            msg = rep.get("ai_error") or tr("این نتیجه فقط از تحلیل محلی و پاسخ‌های تو ساخته شده؛ بررسی AI اجرا نشد.")
             sumcard.lay.addWidget(label("⚠ " + msg, selectable=True))
         sev_counts = {s: sum(1 for f in rep["findings"] if f["severity"] == s) for s in ("high", "medium", "low")}
-        sumcard.lay.addWidget(label(f"یافته‌ها: {sev_counts['high']} جدی · {sev_counts['medium']} متوسط · {sev_counts['low']} کم", muted=True))
+        sumcard.lay.addWidget(label(tr(f"یافته‌ها: {sev_counts['high']} جدی · {sev_counts['medium']} متوسط · {sev_counts['low']} کم"), muted=True))
         top.addWidget(g)
         top.addWidget(sumcard, 1)
         self.res_lay.addLayout(top)
 
         if ai:
             d = ai["disclosure"]
-            req = {"yes": "بله، باید افشا کنی", "no": "لازم نیست", "maybe": "احتمالاً لازم است"}.get(d["required"], d["required"])
-            dc = Card("افشای محتوای AI در YouTube Studio (Altered or synthetic content)")
-            dc.lay.addWidget(label(f"نتیجه: {req}. {d['reason']}", selectable=True))
+            req = {"yes": tr("بله، باید افشا کنی"), "no": tr("لازم نیست"), "maybe": tr("احتمالاً لازم است")}.get(d["required"], d["required"])
+            dc = Card(tr("افشای محتوای AI در YouTube Studio (Altered or synthetic content)"))
+            dc.lay.addWidget(label(tr(f"نتیجه: {req}. {d['reason']}"), selectable=True))
             if d["suggested_description_text"]:
-                dc.lay.addWidget(label("متن پیشنهادی برای توضیحات: " + d["suggested_description_text"], muted=True, selectable=True))
+                dc.lay.addWidget(label(tr("متن پیشنهادی برای توضیحات: ") + d["suggested_description_text"], muted=True, selectable=True))
             self.res_lay.addWidget(dc)
 
-        self.res_lay.addWidget(label("یافته‌ها و راه‌حل‌ها", h2=True))
+        self.res_lay.addWidget(label(tr("یافته‌ها و راه‌حل‌ها"), h2=True))
         if not rep["findings"]:
-            self.res_lay.addWidget(label("✔ مشکل مشخصی پیدا نشد.", selectable=True))
+            self.res_lay.addWidget(label(tr("✔ مشکل مشخصی پیدا نشد."), selectable=True))
         for f in rep["findings"]:
             self.res_lay.addWidget(FindingCard(f))
 
         if ai and ai["copyright_suspects"]:
-            cc = Card("مشکوک به کپی‌رایت (حدس AI، نه جایگزین Content ID)")
+            cc = Card(tr("مشکوک به کپی‌رایت (حدس AI، نه جایگزین Content ID)"))
             for c in ai["copyright_suspects"]:
-                cc.lay.addWidget(label(f"⏱ {c.get('timestamp','؟')} · {c.get('type','')}: {c.get('description','')} — {c.get('advice','')}", selectable=True))
+                cc.lay.addWidget(label(f"⏱ {c.get('timestamp',tr('؟'))} · {c.get('type','')}: {c.get('description','')} — {c.get('advice','')}", selectable=True))
             self.res_lay.addWidget(cc)
         if ai and (ai["retention"]["hook_comment"] or ai["retention"]["notes"]):
-            rc = Card(f"ماندگاری بیننده (امتیاز هوک: {ai['retention']['hook_score']:.0f}/10)")
+            rc = Card(tr(f"ماندگاری بیننده (امتیاز هوک: {ai['retention']['hook_score']:.0f}/10)"))
             if ai["retention"]["hook_comment"]:
                 rc.lay.addWidget(label(ai["retention"]["hook_comment"], selectable=True))
             for n in ai["retention"]["notes"]:
                 rc.lay.addWidget(label(f"⏱ {n.get('timestamp','')} — {n.get('note','')}", selectable=True))
             self.res_lay.addWidget(rc)
         if ai and ai["positives"]:
-            pc = Card("نقاط قوت")
+            pc = Card(tr("نقاط قوت"))
             for p in ai["positives"]:
                 pc.lay.addWidget(label("✔ " + p, selectable=True))
             self.res_lay.addWidget(pc)
 
-        note = label("این گزارش ارزیابی ریسک است: نه تضمین تصمیم یوتیوب، نه مشاوره حقوقی. تشخیص AI و کپی‌رایت احتمالاتی است؛ Content ID واقعی فقط بعد از آپلود (Checks در Studio) مشخص می‌شه.", muted=True)
+        note = label(tr("این گزارش ارزیابی ریسک است: نه تضمین تصمیم یوتیوب، نه مشاوره حقوقی. تشخیص AI و کپی‌رایت احتمالاتی است؛ Content ID واقعی فقط بعد از آپلود (Checks در Studio) مشخص می‌شه."), muted=True)
         self.res_lay.addWidget(note)
         row = QHBoxLayout()
-        for text, fn in (("ذخیره گزارش HTML", self.export_html), ("ذخیره Markdown", self.export_md), ("ذخیره JSON", self.export_json)):
+        for text, fn in ((tr("ذخیره گزارش HTML"), self.export_html), (tr("ذخیره Markdown"), self.export_md), (tr("ذخیره JSON"), self.export_json)):
             b = QPushButton(text)
             b.clicked.connect(fn)
             row.addWidget(b)
@@ -381,7 +382,7 @@ class CheckPage(QWidget):
     def _save(self, ext, filt, content):
         if not self.report:
             return
-        p, _ = QFileDialog.getSaveFileName(self, "ذخیره گزارش", f"{Path(self.report['name']).stem}_report.{ext}", filt)
+        p, _ = QFileDialog.getSaveFileName(self, tr("ذخیره گزارش"), f"{Path(self.report['name']).stem}_report.{ext}", filt)
         if p:
             Path(p).write_text(content, encoding="utf-8")
 

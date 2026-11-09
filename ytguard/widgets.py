@@ -8,6 +8,7 @@ from PyQt6.QtCore import QPointF, QRectF, QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QBrush, QColor, QFont, QIcon, QPainter, QPen, QPixmap, QPolygonF, QPainterPath
 from PyQt6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
+from .i18n import DIR, IS_RTL, tr
 from .knowledge import IMPACT_FA, RULES, rule_title
 from .theme import palette
 
@@ -23,6 +24,8 @@ _LTR_RUN = re.compile(r"-?[A-Za-z0-9][A-Za-z0-9.,:/×%+_\-]*(?: [A-Za-z0-9][A-Za
 
 def ltr_runs(text: str) -> str:
     """Keep Latin/number runs (e.g. '-14 LUFS', '1080×1920') visually intact inside RTL Persian text."""
+    if not IS_RTL:
+        return text
     return _LTR_RUN.sub(lambda m: "\u200e" + m.group(0) + "\u200e", text)
 
 
@@ -36,7 +39,7 @@ def label(text="", *, muted=False, h1=False, h2=False, wrap=True, rtl=True, sele
     if h2:
         lb.setProperty("h2", True)
     if rtl:
-        lb.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        lb.setLayoutDirection(DIR)
     if selectable:
         lb.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
     return lb
@@ -96,7 +99,7 @@ class DropZone(QFrame):
         self.icon = QLabel("⬇")
         self.icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.icon.setStyleSheet("font-size: 34px; color: #FF0000; background: transparent;")
-        self.title = label("ویدیو رو اینجا بنداز یا کلیک کن", h2=True)
+        self.title = label(tr("ویدیو رو اینجا بنداز یا کلیک کن"), h2=True)
         self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.sub = label("MP4 · MOV · MKV · WEBM · AVI …", muted=True)
         self.sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -172,11 +175,11 @@ class ScoreGauge(QWidget):
         p.setPen(QColor(c["muted"]))
         f.setPointSize(8)
         p.setFont(f)
-        p.drawText(QRectF(r.x(), r.y() + side * 0.70, side, side * 0.15), Qt.AlignmentFlag.AlignCenter, "امتیاز ریسک (۰ = امن)")
+        p.drawText(QRectF(r.x(), r.y() + side * 0.70, side, side * 0.15), Qt.AlignmentFlag.AlignCenter, tr("امتیاز ریسک (۰ = امن)"))
 
 
-SEV_FA = {"high": "جدی", "medium": "متوسط", "low": "کم", "info": "اطلاع"}
-SRC_FA = {"local": "تحلیل محلی", "ai": "AI", "questionnaire": "پاسخ تو"}
+SEV_FA = {"high": tr("جدی"), "medium": tr("متوسط"), "low": tr("کم"), "info": tr("اطلاع")}
+SRC_FA = {"local": tr("تحلیل محلی"), "ai": "AI", "questionnaire": tr("پاسخ تو")}
 
 
 class FindingCard(QFrame):
@@ -184,7 +187,7 @@ class FindingCard(QFrame):
         super().__init__()
         self.setProperty("card", True)
         self.setProperty("sev", f["severity"])
-        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        self.setLayoutDirection(DIR)
         lay = QVBoxLayout(self)
         lay.setContentsMargins(14, 10, 14, 10)
         lay.setSpacing(5)
@@ -203,12 +206,12 @@ class FindingCard(QFrame):
         t = label(f["issue"], h2=True, selectable=True)
         lay.addWidget(t)
         if f.get("evidence"):
-            lay.addWidget(label("شواهد: " + f["evidence"], muted=True, selectable=True))
+            lay.addWidget(label(tr("شواهد: ") + f["evidence"], muted=True, selectable=True))
         if f.get("fix"):
-            lay.addWidget(label("راه‌حل: " + f["fix"], selectable=True))
+            lay.addWidget(label(tr("راه‌حل: ") + f["fix"], selectable=True))
         for lb in self.findChildren(QLabel):
             if lb.property("chip") is not True:
-                lb.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+                lb.setAlignment(Qt.AlignmentFlag.AlignLeading | Qt.AlignmentFlag.AlignVCenter)
         self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
 
 
@@ -216,7 +219,7 @@ class Card(QFrame):
     def __init__(self, title: str | None = None):
         super().__init__()
         self.setProperty("card", True)
-        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        self.setLayoutDirection(DIR)
         self.lay = QVBoxLayout(self)
         self.lay.setContentsMargins(16, 14, 16, 14)
         self.lay.setSpacing(8)

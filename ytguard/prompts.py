@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import json
 
+from .i18n import DIR, IS_RTL, LANG, tr
 from .knowledge import rules_for_prompt
+
+OUT_LANG = "English" if LANG == "en" else "Persian (Farsi)"
 
 ANALYSIS_SYSTEM = """You are a YouTube policy pre-check reviewer helping a creator BEFORE they upload.
 You are given the full video (or sampled frames) plus context from the creator and local measurements.
@@ -17,13 +20,13 @@ Rules:
 - Think about WATCH-TIME problems too (weak hook in first 3s, dead air, repetitive visuals, wall-of-text subtitles) and
   monetization problems (inauthentic/mass-produced, reused content, advertiser-unfriendly content).
 - Ask follow_up_questions ONLY if the answer would change the verdict (max 4, short, with 2-4 answer options each).
-- All human-readable text values MUST be in Persian (Farsi). Keep English technical terms (Content ID, Shorts, hook, YPP...) as-is.
+- All human-readable text values MUST be in {OUT_LANG}. Keep English technical terms (Content ID, Shorts, hook, YPP...) as-is.
 - This is a risk assessment, not legal advice, and not a guarantee of how YouTube will act.
-- Output ONLY valid JSON, no markdown fences."""
+- Output ONLY valid JSON, no markdown fences.""".replace("{OUT_LANG}", OUT_LANG)
 
 ANALYSIS_SCHEMA_EXAMPLE = {
     "detected_format": "short | long",
-    "summary": "۲-۳ جمله درباره‌ی محتوای ویدیو",
+    "summary": tr("۲-۳ جمله درباره‌ی محتوای ویدیو"),
     "language_of_video": "fa | en | ...",
     "overall_risk_score": 0,
     "ai_usage": {"likely_ai_voice": False, "likely_ai_visuals": False, "likely_ai_music": False,
@@ -56,7 +59,7 @@ def build_analysis_prompt(fmt: str, answers: dict, local_summary: dict, clarific
     if prev_report:
         parts.append("YOUR PREVIOUS ASSESSMENT (update it using the clarifications, keep what is still valid):\n"
                      + json.dumps(prev_report, ensure_ascii=False)[:6000])
-    parts.append("Return JSON with exactly this shape (values in Persian):\n" + json.dumps(ANALYSIS_SCHEMA_EXAMPLE, ensure_ascii=False))
+    parts.append("Return JSON with exactly this shape (values in " + OUT_LANG + "):\n" + json.dumps(ANALYSIS_SCHEMA_EXAMPLE, ensure_ascii=False))
     return "\n\n".join(parts)
 
 
@@ -67,39 +70,39 @@ Use clean plain text/markdown, ready to copy-paste."""
 
 # id -> (title_fa, description_fa, prompt_en, needs_language)
 TOOLS: dict[str, tuple[str, str, str]] = {
-    "titles": ("ایده تیتر", "۱۰ تیتر صادقانه و جذاب + دلیل هر کدوم",
+    "titles": (tr("ایده تیتر"), tr("۱۰ تیتر صادقانه و جذاب + دلیل هر کدوم"),
                "Write 10 YouTube title options for this video (max 70 characters each). Mix curiosity, benefit and specificity, "
-               "but every title must be accurate to the video. After each title add one short line (in Persian) saying why it works. "
+               "but every title must be accurate to the video. After each title add one short line (in the output language) saying why it works. "
                "Finish by recommending the best 2."),
-    "description": ("توضیحات (Description)", "توضیحات بهینه با هوک، خلاصه، چپتر و هشتگ",
+    "description": (tr("توضیحات (Description)"), tr("توضیحات بهینه با هوک، خلاصه، چپتر و هشتگ"),
                     "Write an optimized YouTube description: first 2 lines are a strong hook with the main keyword, then a short summary, "
                     "then chapter timestamps (MM:SS) based on the video, then a short neutral CTA (no engagement bait), then 3-5 relevant hashtags."),
-    "tags": ("تگ و کلمات کلیدی", "تگ‌ها، کلمات کلیدی و هشتگ مناسب",
+    "tags": (tr("تگ و کلمات کلیدی"), tr("تگ‌ها، کلمات کلیدی و هشتگ مناسب"),
              "Give: 15 tags (mix of broad and specific, comma separated, total under 450 characters), 8 search keyword phrases people would type, "
              "and 3-5 hashtags. Only topics actually covered in the video."),
-    "chapters": ("چپتر / Timestamp", "فهرست چپتر با زمان دقیق",
+    "chapters": (tr("چپتر / Timestamp"), tr("فهرست چپتر با زمان دقیق"),
                  "Create YouTube chapters for this video. Format exactly: 'MM:SS Title' one per line, first line must be 00:00, "
                  "at least 3 chapters, each at least 10 seconds apart, titles short and descriptive."),
-    "thumbnail": ("ایده تامبنیل", "متن روی تصویر + بهترین لحظه برای فریم",
+    "thumbnail": (tr("ایده تامبنیل"), tr("متن روی تصویر + بهترین لحظه برای فریم"),
                   "Suggest 5 thumbnail concepts for this video: for each give (1) the best timestamp (MM:SS) to capture a frame, "
                   "(2) a 2-4 word text overlay, (3) composition notes (face/emotion, contrast, colors), (4) why it fits. Must not mislead about the content."),
-    "shorts_cuts": ("بهترین لحظه‌ها برای Shorts", "از ویدیوی لانگ، بخش‌های مناسب کات شورت",
+    "shorts_cuts": (tr("بهترین لحظه‌ها برای Shorts"), tr("از ویدیوی لانگ، بخش‌های مناسب کات شورت"),
                     "Find the 5 best moments to cut into YouTube Shorts (each 20-59 seconds, self-contained, strong first-second hook). "
                     "For each: start and end timestamp (MM:SS), a hook line to put as on-screen text, a title, and why it will hold viewers."),
-    "hook": ("بهبود هوک", "تحلیل ۳ ثانیه اول و پیشنهاد جایگزین",
+    "hook": (tr("بهبود هوک"), tr("تحلیل ۳ ثانیه اول و پیشنهاد جایگزین"),
              "Analyze the first 5 seconds of the video as a hook. Score it 1-10, explain what works and what loses viewers, "
              "then write 3 alternative opening lines/visual openings that fit the same content."),
-    "pinned_comment": ("پین‌کامنت و تعامل", "کامنت پین‌شده و سوال بحث‌برانگیز بدون engagement bait",
+    "pinned_comment": (tr("پین‌کامنت و تعامل"), tr("کامنت پین‌شده و سوال بحث‌برانگیز بدون engagement bait"),
                        "Write 3 pinned-comment options and 3 genuine discussion questions related to the video's content. "
                        "No 'like/subscribe or else', no fake giveaways, no engagement bait."),
-    "disclosure_text": ("متن افشای AI", "متن آماده برای توضیحات + راهنمای تیک Studio",
+    "disclosure_text": (tr("متن افشای AI"), tr("متن آماده برای توضیحات + راهنمای تیک Studio"),
                         "Decide whether this video needs YouTube's 'Altered or synthetic content' disclosure based on what you see/hear "
                         "(realistic AI visuals, cloned real voices, etc.). Answer YES/NO/MAYBE with reasons, then write a short, natural disclosure line "
                         "for the description in the video's language, and tell the creator which Studio checkbox to use."),
-    "transcript": ("رونویسی (Transcript)", "متن گفتار با زمان‌بندی",
+    "transcript": (tr("رونویسی (Transcript)"), tr("متن گفتار با زمان‌بندی"),
                    "Transcribe all speech in the video with timestamps every sentence or ~10 seconds, format '[MM:SS] text'. "
                    "If there is no speech, say so. Do not translate."),
-    "summary_post": ("خلاصه و پست کامیونیتی", "پست Community و متن معرفی کوتاه",
+    "summary_post": (tr("خلاصه و پست کامیونیتی"), tr("پست Community و متن معرفی کوتاه"),
                      "Write (1) a 3-sentence summary of the video, (2) a Community-tab post teasing it, (3) a one-line tweet/X caption. No hype words, no invented claims."),
 }
 

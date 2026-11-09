@@ -1,6 +1,8 @@
 """Local (offline) analysis: ffmpeg/OpenCV based checks that need no AI and no internet."""
 from __future__ import annotations
 
+from .i18n import DIR, IS_RTL, tr
+
 import json
 import os
 import re
@@ -299,7 +301,7 @@ def F(rule_id, severity, issue, evidence="", fix="", timestamp=None, source="loc
 
 def run_local_checks(path: str, fmt: str, ffmpeg: str, history_others=(), progress: ProgressCb = lambda p, t: None,
                      cancel: Callable[[], bool] = lambda: False) -> dict:
-    progress(2, "خواندن مشخصات ویدیو…")
+    progress(2, tr("خواندن مشخصات ویدیو…"))
     info = media_info(path, ffmpeg)
     if cancel():
         raise Cancelled()
@@ -310,71 +312,71 @@ def run_local_checks(path: str, fmt: str, ffmpeg: str, history_others=(), progre
     short_side = min(info["width"], info["height"])
     if fmt == "short":
         if info["orientation"] == "horizontal":
-            findings.append(F("shorts_format", "high", "ویدیو افقی است ولی به‌عنوان Short انتخاب شده",
+            findings.append(F("shorts_format", "high", tr("ویدیو افقی است ولی به‌عنوان Short انتخاب شده"),
                               f'{info["width"]}×{info["height"]}',
-                              "برای Shorts نسبت ۹:۱۶ (یا حداقل مربع) بساز؛ در تب ابزارها می‌تونی تبدیل ۹:۱۶ بگیری."))
+                              tr("برای Shorts نسبت ۹:۱۶ (یا حداقل مربع) بساز؛ در تب ابزارها می‌تونی تبدیل ۹:۱۶ بگیری.")))
         if dur > 180:
-            findings.append(F("shorts_format", "high", "مدت ویدیو از ۳ دقیقه بیشتر است و Short محسوب نمی‌شه",
-                              f"{fmt_ts(dur)}", "ویدیو رو زیر ۳ دقیقه ببر یا به‌عنوان ویدیوی لانگ آپلود کن."))
+            findings.append(F("shorts_format", "high", tr("مدت ویدیو از ۳ دقیقه بیشتر است و Short محسوب نمی‌شه"),
+                              f"{fmt_ts(dur)}", tr("ویدیو رو زیر ۳ دقیقه ببر یا به‌عنوان ویدیوی لانگ آپلود کن.")))
         if short_side and short_side < 1080:
-            findings.append(F("technical_quality", "low", "رزولوشن کمتر از 1080×1920",
-                              f'{info["width"]}×{info["height"]}', "با رزولوشن 1080×1920 خروجی بگیر."))
+            findings.append(F("technical_quality", "low", tr("رزولوشن کمتر از 1080×1920"),
+                              f'{info["width"]}×{info["height"]}', tr("با رزولوشن 1080×1920 خروجی بگیر.")))
     else:
         if info["orientation"] == "vertical":
-            findings.append(F("long_format", "medium", "ویدیو عمودی است ولی به‌عنوان لانگ انتخاب شده",
-                              f'{info["width"]}×{info["height"]}', "ویدیوی لانگ بهتره افقی 16:9 باشه؛ ویدیوی عمودی زیر ۳ دقیقه Short می‌شه."))
+            findings.append(F("long_format", "medium", tr("ویدیو عمودی است ولی به‌عنوان لانگ انتخاب شده"),
+                              f'{info["width"]}×{info["height"]}', tr("ویدیوی لانگ بهتره افقی 16:9 باشه؛ ویدیوی عمودی زیر ۳ دقیقه Short می‌شه.")))
         if dur < 480:
-            findings.append(F("long_format", "info", "کمتر از ۸ دقیقه: امکان Mid-roll ads نداره",
-                              f"{fmt_ts(dur)}", "اگه هدفت درآمد آگهی بیشتره، محتوا باید بالای ۸ دقیقه (و با ماندگاری خوب) باشه."))
+            findings.append(F("long_format", "info", tr("کمتر از ۸ دقیقه: امکان Mid-roll ads نداره"),
+                              f"{fmt_ts(dur)}", tr("اگه هدفت درآمد آگهی بیشتره، محتوا باید بالای ۸ دقیقه (و با ماندگاری خوب) باشه.")))
         if short_side and short_side < 720:
-            findings.append(F("technical_quality", "medium", "رزولوشن کمتر از 720p", f'{info["width"]}×{info["height"]}',
-                              "حداقل 1080p خروجی بگیر."))
+            findings.append(F("technical_quality", "medium", tr("رزولوشن کمتر از 720p"), f'{info["width"]}×{info["height"]}',
+                              tr("حداقل 1080p خروجی بگیر.")))
         elif short_side and short_side < 1080:
-            findings.append(F("technical_quality", "low", "رزولوشن کمتر از 1080p", f'{info["width"]}×{info["height"]}',
-                              "اگه منبع اجازه می‌ده 1080p یا 4K خروجی بگیر."))
+            findings.append(F("technical_quality", "low", tr("رزولوشن کمتر از 1080p"), f'{info["width"]}×{info["height"]}',
+                              tr("اگه منبع اجازه می‌ده 1080p یا 4K خروجی بگیر.")))
     if info["fps"] and info["fps"] < 23:
-        findings.append(F("technical_quality", "low", "نرخ فریم پایین", f'{info["fps"]:.1f} fps', "حداقل 24 یا 30 fps."))
+        findings.append(F("technical_quality", "low", tr("نرخ فریم پایین"), f'{info["fps"]:.1f} fps', tr("حداقل 24 یا 30 fps.")))
 
     # ---- audio
-    progress(10, "تحلیل صدا (لودنس و سکوت)…")
+    progress(10, tr("تحلیل صدا (لودنس و سکوت)…"))
     audio = {}
     if info["has_audio"]:
         audio = audio_analysis(path, ffmpeg)
         lufs, tp = audio["lufs"], audio["true_peak"]
         if lufs is not None:
             if lufs < -22:
-                findings.append(F("technical_quality", "medium", "صدا خیلی آرام است", f"{lufs:.1f} LUFS",
-                                  "لودنس رو به حدود -14 LUFS برسون."))
+                findings.append(F("technical_quality", "medium", tr("صدا خیلی آرام است"), f"{lufs:.1f} LUFS",
+                                  tr("لودنس رو به حدود -14 LUFS برسون.")))
             elif lufs > -9:
-                findings.append(F("technical_quality", "medium", "صدا خیلی بلند/فشرده است", f"{lufs:.1f} LUFS",
-                                  "یوتیوب صدا رو پایین می‌کشه و کیفیت خراب می‌شه؛ حدود -14 LUFS."))
+                findings.append(F("technical_quality", "medium", tr("صدا خیلی بلند/فشرده است"), f"{lufs:.1f} LUFS",
+                                  tr("یوتیوب صدا رو پایین می‌کشه و کیفیت خراب می‌شه؛ حدود -14 LUFS.")))
         if tp is not None and tp > -0.5:
-            findings.append(F("technical_quality", "low", "ریسک کلیپ شدن صدا (True peak)", f"{tp:.1f} dBFS", "پیک رو زیر -1 dBTP نگه دار."))
+            findings.append(F("technical_quality", "low", tr("ریسک کلیپ شدن صدا (True peak)"), f"{tp:.1f} dBFS", tr("پیک رو زیر -1 dBTP نگه دار.")))
         if dur and audio["silence_total"] / dur > 0.15:
-            findings.append(F("technical_quality", "medium", "سکوت زیاد در ویدیو",
-                              f'{audio["silence_total"]:.0f}s از {dur:.0f}s', "بخش‌های سکوت رو کوتاه کن (Jump cut)."))
+            findings.append(F("technical_quality", "medium", tr("سکوت زیاد در ویدیو"),
+                              tr(f'{audio["silence_total"]:.0f}s از {dur:.0f}s'), tr("بخش‌های سکوت رو کوتاه کن (Jump cut).")))
         for s, d in audio["silences"]:
             if s < 1.0 and d >= 1.5:
-                findings.append(F("technical_quality", "medium", "سکوت در شروع ویدیو (هوک ضعیف)", f"{d:.1f}s", "از ثانیه اول صدا/موسیقی/جمله اصلی بیار.", fmt_ts(s)))
+                findings.append(F("technical_quality", "medium", tr("سکوت در شروع ویدیو (هوک ضعیف)"), f"{d:.1f}s", tr("از ثانیه اول صدا/موسیقی/جمله اصلی بیار."), fmt_ts(s)))
                 break
     else:
-        findings.append(F("technical_quality", "medium" if fmt == "short" else "low", "ویدیو ترک صدا ندارد", "",
-                          "صدا/موزیک مجاز اضافه کن؛ ویدیوی بی‌صدا ماندگاری پایینی داره."))
+        findings.append(F("technical_quality", "medium" if fmt == "short" else "low", tr("ویدیو ترک صدا ندارد"), "",
+                          tr("صدا/موزیک مجاز اضافه کن؛ ویدیوی بی‌صدا ماندگاری پایینی داره.")))
     if cancel():
         raise Cancelled()
 
     # ---- black frames
-    progress(30, "بررسی فریم سیاه…")
+    progress(30, tr("بررسی فریم سیاه…"))
     black = black_analysis(path, ffmpeg)
     if black["segments"]:
         s0, d0 = black["segments"][0]
         if s0 < 0.5:
-            findings.append(F("technical_quality", "medium", "ویدیو با فریم سیاه شروع می‌شه", f"{d0:.1f}s", "کات رو از اولین فریم محتوا شروع کن.", fmt_ts(s0)))
+            findings.append(F("technical_quality", "medium", tr("ویدیو با فریم سیاه شروع می‌شه"), f"{d0:.1f}s", tr("کات رو از اولین فریم محتوا شروع کن."), fmt_ts(s0)))
         if dur and black["total"] / dur > 0.05:
-            findings.append(F("technical_quality", "medium", "فریم سیاه زیاد در ویدیو", f'{black["total"]:.0f}s', "بخش‌های سیاه رو حذف کن."))
+            findings.append(F("technical_quality", "medium", tr("فریم سیاه زیاد در ویدیو"), f'{black["total"]:.0f}s', tr("بخش‌های سیاه رو حذف کن.")))
 
     # ---- frames
-    progress(40, "نمونه‌برداری از فریم‌ها…")
+    progress(40, tr("نمونه‌برداری از فریم‌ها…"))
     frames = sample_frames(path, dur, cancel=cancel)
     metrics = {}
     if len(frames) >= 4:
@@ -384,18 +386,18 @@ def run_local_checks(path: str, fmt: str, ffmpeg: str, history_others=(), progre
         cuts = sum(1 for d in diffs if d > 28)
         metrics.update({"static_ratio": round(static_ratio, 3), "approx_scene_changes": cuts})
         if static_ratio > 0.85:
-            findings.append(F("inauthentic_content", "high", "تصویر تقریباً ثابت (شبیه اسلایدشو/تصویر ثابت)",
-                              f"{static_ratio*100:.0f}% فریم‌ها تقریباً بدون تغییر",
-                              "تنوع بصری، B-roll، حرکت و ادیت روایی اضافه کن؛ ویدیوهای تصویر ثابت + صدا ریسک غیراصیل بودن دارن."))
+            findings.append(F("inauthentic_content", "high", tr("تصویر تقریباً ثابت (شبیه اسلایدشو/تصویر ثابت)"),
+                              tr(f"{static_ratio*100:.0f}% فریم‌ها تقریباً بدون تغییر"),
+                              tr("تنوع بصری، B-roll، حرکت و ادیت روایی اضافه کن؛ ویدیوهای تصویر ثابت + صدا ریسک غیراصیل بودن دارن.")))
         elif static_ratio > 0.6:
-            findings.append(F("inauthentic_content", "medium", "بخش بزرگی از ویدیو بدون تغییر بصری است",
-                              f"{static_ratio*100:.0f}% فریم‌ها تقریباً بدون تغییر", "تنوع بصری بیشتر اضافه کن."))
+            findings.append(F("inauthentic_content", "medium", tr("بخش بزرگی از ویدیو بدون تغییر بصری است"),
+                              tr(f"{static_ratio*100:.0f}% فریم‌ها تقریباً بدون تغییر"), tr("تنوع بصری بیشتر اضافه کن.")))
     sm = start_motion(path, info["fps"] or 25.0)
     metrics["start_motion"] = round(sm, 2)
     if fmt == "short" and sm < 1.0:
-        findings.append(F("shorts_format", "low", "سه ثانیه اول تقریباً بی‌حرکت است (هوک ضعیف)", f"میانگین تغییر {sm:.2f}",
-                          "از ثانیه صفر حرکت، متن یا جمله جذاب بیار.", "00:00"))
-    progress(70, "اثر انگشت فریم‌ها و مقایسه با ویدیوهای قبلی…")
+        findings.append(F("shorts_format", "low", tr("سه ثانیه اول تقریباً بی‌حرکت است (هوک ضعیف)"), tr(f"میانگین تغییر {sm:.2f}"),
+                          tr("از ثانیه صفر حرکت، متن یا جمله جذاب بیار."), "00:00"))
+    progress(70, tr("اثر انگشت فریم‌ها و مقایسه با ویدیوهای قبلی…"))
     fingerprints = [f"{h:016x}" for _, _, h in frames]
     best = (0.0, None)
     for entry, fps_ in history_others:
@@ -405,25 +407,25 @@ def run_local_checks(path: str, fmt: str, ffmpeg: str, history_others=(), progre
     metrics["max_similarity"] = round(best[0], 3)
     if best[1] is not None and best[0] >= 0.5:
         sev = "high" if best[0] >= 0.75 else "medium"
-        findings.append(F("inauthentic_content", sev, "این ویدیو خیلی شبیه یکی از ویدیوهای قبلی‌ات است",
-                          f'{best[0]*100:.0f}% شباهت با «{best[1].get("name", "?")}»',
-                          "ویدیوهای تقریباً یکسان که فقط جزئیات کوچک فرق دارن نشانه محتوای تکراری/قالبی‌اند؛ ساختار و بصری رو متفاوت کن."))
+        findings.append(F("inauthentic_content", sev, tr("این ویدیو خیلی شبیه یکی از ویدیوهای قبلی‌ات است"),
+                          tr(f'{best[0]*100:.0f}% شباهت با «{best[1].get("name", "?")}»'),
+                          tr("ویدیوهای تقریباً یکسان که فقط جزئیات کوچک فرق دارن نشانه محتوای تکراری/قالبی‌اند؛ ساختار و بصری رو متفاوت کن.")))
 
     # ---- metadata
-    progress(85, "بررسی متادیتا (C2PA، ابزارهای AI، اپ‌های دیگر)…")
+    progress(85, tr("بررسی متادیتا (C2PA، ابزارهای AI، اپ‌های دیگر)…"))
     meta = metadata_scan(path, info["tags"])
     if meta["c2pa"]:
-        findings.append(F("synthetic_disclosure", "medium", "متادیتای C2PA / Content Credentials در فایل پیدا شد",
-                          "فایل ممکنه حاوی اطلاعات منشأ (Provenance) باشه",
-                          "اگه فایل کاملاً تولیدشده با AI هست، یوتیوب برچسب رو خودش می‌زنه و قابل حذف نیست؛ بهتره خودت هم افشا کنی."))
+        findings.append(F("synthetic_disclosure", "medium", tr("متادیتای C2PA / Content Credentials در فایل پیدا شد"),
+                          tr("فایل ممکنه حاوی اطلاعات منشأ (Provenance) باشه"),
+                          tr("اگه فایل کاملاً تولیدشده با AI هست، یوتیوب برچسب رو خودش می‌زنه و قابل حذف نیست؛ بهتره خودت هم افشا کنی.")))
     if meta["ai_markers"]:
-        findings.append(F("synthetic_disclosure", "medium", "نشانه ابزار تولید AI در متادیتای فایل",
-                          "، ".join(meta["ai_markers"]), "اگه محتوا واقع‌نماست، تیک Altered or synthetic content رو بزن."))
+        findings.append(F("synthetic_disclosure", "medium", tr("نشانه ابزار تولید AI در متادیتای فایل"),
+                          tr("، ").join(meta["ai_markers"]), tr("اگه محتوا واقع‌نماست، تیک Altered or synthetic content رو بزن.")))
     if meta["app_markers"]:
-        findings.append(F("other_platform_watermark", "low", "نشانه اپ/پلتفرم دیگر در متادیتا",
-                          "، ".join(meta["app_markers"]),
-                          "اگه واترمارک روی تصویر هست، خروجی بدون واترمارک از پروژه خودت بگیر."))
-    progress(100, "تحلیل محلی تمام شد")
+        findings.append(F("other_platform_watermark", "low", tr("نشانه اپ/پلتفرم دیگر در متادیتا"),
+                          tr("، ").join(meta["app_markers"]),
+                          tr("اگه واترمارک روی تصویر هست، خروجی بدون واترمارک از پروژه خودت بگیر.")))
+    progress(100, tr("تحلیل محلی تمام شد"))
     return {"info": info, "audio": audio, "black": black, "metrics": metrics, "meta": meta,
             "findings": findings, "fingerprints": fingerprints}
 
@@ -446,13 +448,13 @@ def compress_for_upload(path: str, ffmpeg: str, out_path: str, height: int = 480
             if line.startswith("out_time_ms=") and duration:
                 try:
                     t = int(line.split("=")[1]) / 1_000_000
-                    progress(min(99, int(t / duration * 100)), "کم‌حجم‌سازی نسخه برای ارسال…")
+                    progress(min(99, int(t / duration * 100)), tr("کم‌حجم‌سازی نسخه برای ارسال…"))
                 except ValueError:
                     pass
     finally:
         p.wait()
     if p.returncode != 0 or not Path(out_path).exists():
-        raise RuntimeError("کم‌حجم‌سازی ویدیو با ffmpeg ناموفق بود")
+        raise RuntimeError(tr("کم‌حجم‌سازی ویدیو با ffmpeg ناموفق بود"))
     return out_path
 
 
@@ -536,11 +538,11 @@ def convert_to_vertical(path: str, ffmpeg: str, out_path: str, start: float = 0,
                 raise Cancelled()
             if line.startswith("out_time_ms="):
                 try:
-                    progress(min(99, int(int(line.split("=")[1]) / 1_000_000 / total * 100)), "در حال تبدیل به ۹:۱۶…")
+                    progress(min(99, int(int(line.split("=")[1]) / 1_000_000 / total * 100)), tr("در حال تبدیل به ۹:۱۶…"))
                 except ValueError:
                     pass
     finally:
         p.wait()
     if p.returncode != 0:
-        raise RuntimeError("تبدیل ۹:۱۶ با ffmpeg ناموفق بود")
+        raise RuntimeError(tr("تبدیل ۹:۱۶ با ffmpeg ناموفق بود"))
     return out_path

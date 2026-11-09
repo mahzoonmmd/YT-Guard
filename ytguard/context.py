@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
+from .i18n import DIR, IS_RTL, tr
 from .storage import History, Settings
 
 
@@ -35,6 +36,6 @@ class AppContext(QObject):
     def ai_ready(self) -> tuple[bool, str]:
         s = self.settings
         if s["provider"] == "gemini":
-            return (bool((s["gemini_key"] or "").strip()), "کلید Gemini API در تنظیمات وارد نشده")
+            return (bool((s["gemini_key"] or "").strip()), tr("کلید Gemini API در تنظیمات وارد نشده"))
         ok = bool((s["openai_base"] or "").strip()) and bool((s["openai_model"] or "").strip())
-        return ok, "آدرس/مدل OpenAI-compatible در تنظیمات کامل نیست"
+        return ok, tr("آدرس/مدل OpenAI-compatible در تنظیمات کامل نیست")

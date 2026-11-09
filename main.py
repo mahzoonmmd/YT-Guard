@@ -6,6 +6,7 @@ from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QApplication
 
 from ytguard.context import AppContext
+from ytguard.i18n import DIR
 from ytguard.main_window import MainWindow
 from ytguard.theme import load_fonts
 
@@ -17,7 +18,7 @@ def asset_dir() -> Path:
 
 def main():
     app = QApplication(sys.argv)
-    app.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+    app.setLayoutDirection(DIR)
     family = load_fonts(asset_dir())
     app.setFont(QFont(family, 11))
     ctx = AppContext()

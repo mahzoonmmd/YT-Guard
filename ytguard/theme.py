@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from .i18n import IS_RTL
+
 LIGHT = {
     "bg": "#FFFFFF", "surface": "#F7F7F7", "surface2": "#EFEFEF", "border": "#E0E0E0",
     "text": "#0F0F0F", "muted": "#606060", "accent": "#FF0000", "accent_hover": "#CC0000",
@@ -23,6 +25,8 @@ def palette(name: str) -> dict:
 
 def qss(name: str, font_family: str) -> str:
     c = palette(name)
+    S = "right" if IS_RTL else "left"      # side of the accent bar / logical start
+    O = "left" if IS_RTL else "right"      # opposite side
     return f"""
 * {{ font-family: "{font_family}", "Segoe UI", Tahoma, sans-serif; font-size: 15px; }}
 QWidget {{ background: {c['bg']}; color: {c['text']}; }}
@@ -33,16 +37,16 @@ QLabel[h1="true"] {{ font-size: 27px; font-weight: 700; }}
 QLabel[h2="true"] {{ font-size: 17px; font-weight: 700; }}
 QFrame[card="true"], QGroupBox {{ background: {c['surface']}; border: 1px solid {c['border']}; border-radius: 12px; }}
 QGroupBox {{ margin-top: 14px; padding: 14px 10px 10px 10px; font-weight: 700; }}
-QGroupBox::title {{ subcontrol-origin: margin; subcontrol-position: top right; right: 14px; padding: 0 6px; color: {c['accent']}; background: {c['bg']}; }}
+QGroupBox::title {{ subcontrol-origin: margin; subcontrol-position: top {S}; {S}: 14px; padding: 0 6px; color: {c['accent']}; background: {c['bg']}; }}
 QFrame#topbar {{ background: {c['bg']}; border-bottom: 1px solid {c['border']}; }}
-QFrame#sidebar {{ background: {c['sidebar']}; border-left: 1px solid {c['border']}; }}
+QFrame#sidebar {{ background: {c['sidebar']}; border-{O}: 1px solid {c['border']}; }}
 QPushButton {{ background: {c['surface2']}; border: 1px solid {c['border']}; border-radius: 9px; padding: 9px 18px; }}
 QPushButton:hover {{ border-color: {c['accent']}; }}
 QPushButton:disabled {{ color: {c['muted']}; }}
 QPushButton[primary="true"] {{ background: {c['accent']}; color: {c['accent_text']}; border: none; font-weight: 700; padding: 10px 22px; }}
 QPushButton[primary="true"]:hover {{ background: {c['accent_hover']}; }}
 QPushButton[primary="true"]:disabled {{ background: {c['surface2']}; color: {c['muted']}; }}
-QPushButton[nav="true"] {{ background: transparent; border: none; border-radius: 10px; text-align: right; padding: 12px 14px; font-size: 16px; }}
+QPushButton[nav="true"] {{ background: transparent; border: none; border-radius: 10px; text-align: {S}; padding: 12px 14px; font-size: 16px; }}
 QPushButton[nav="true"]:hover {{ background: {c['surface2']}; }}
 QPushButton[nav="true"][active="true"] {{ background: {c['sel']}; color: {c['accent']}; font-weight: 700; }}
 QPushButton[flat="true"] {{ background: transparent; border: none; color: {c['accent']}; padding: 4px 8px; }}
@@ -74,10 +78,10 @@ QTabBar::tab:selected {{ color: {c['accent']}; border-bottom-color: {c['accent']
 QToolTip {{ background: {c['surface2']}; color: {c['text']}; border: 1px solid {c['border']}; padding: 5px; }}
 QFrame#drop {{ background: {c['surface']}; border: 2px dashed {c['border']}; border-radius: 16px; }}
 QFrame#drop[hover="true"] {{ border-color: {c['accent']}; background: {c['sel']}; }}
-QFrame[sev="high"] {{ border-right: 5px solid {c['bad']}; }}
-QFrame[sev="medium"] {{ border-right: 5px solid {c['warn']}; }}
-QFrame[sev="low"] {{ border-right: 5px solid {c['info']}; }}
-QFrame[sev="info"] {{ border-right: 5px solid {c['border']}; }}
+QFrame[sev="high"] {{ border-{S}: 5px solid {c['bad']}; }}
+QFrame[sev="medium"] {{ border-{S}: 5px solid {c['warn']}; }}
+QFrame[sev="low"] {{ border-{S}: 5px solid {c['info']}; }}
+QFrame[sev="info"] {{ border-{S}: 5px solid {c['border']}; }}
 QLabel[chip="true"] {{ background: {c['surface2']}; border-radius: 9px; padding: 3px 10px; font-size: 13px; }}
 QLabel[chip="true"][sev="high"] {{ background: {c['bad']}; color: white; }}
 QLabel[chip="true"][sev="medium"] {{ background: {c['warn']}; color: #111; }}

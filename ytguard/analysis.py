@@ -4,6 +4,7 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
+from .i18n import DIR, IS_RTL, tr
 from .knowledge import RULES, SEV_ORDER
 
 PTS = {"high": 18, "medium": 8, "low": 3, "info": 0}
@@ -91,4 +92,4 @@ def assemble_report(*, path: str, fmt: str, answers: dict, local: dict, q_findin
     }
 
 
-VERDICT_FA = {"safe": "ریسک کم", "caution": "نیاز به بازبینی", "risky": "ریسک بالا"}
+VERDICT_FA = {"safe": tr("ریسک کم"), "caution": tr("نیاز به بازبینی"), "risky": tr("ریسک بالا")}

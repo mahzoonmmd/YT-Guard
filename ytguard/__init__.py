@@ -9,3 +9,10 @@ CREATOR_NAME_FA = "محمدعلی"
 GITHUB_PROFILE_URL = "https://github.com/mahzoonmmd"
 GITHUB_REPO_URL = "https://github.com/mahzoonmmd/YT-Guard"
 TAGLINE_FA = "پیش‌بررسی هوشمند ویدیو برای یوتیوبرها"
+
+
+from .i18n import tr  # noqa: E402
+
+APP_NAME_FA = tr(APP_NAME_FA)
+CREATOR_NAME_FA = tr(CREATOR_NAME_FA)
+TAGLINE_FA = tr(TAGLINE_FA)

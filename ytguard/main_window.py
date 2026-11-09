@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel, QMainWindow, QPushButton, QStackedWidget, QVBoxLayout, QWidget)
 
+from .i18n import DIR, IS_RTL, tr
 from . import APP_NAME, APP_NAME_FA, TAGLINE_FA
 from .context import AppContext
 from .page_check import CheckPage
@@ -24,7 +25,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon(make_app_icon(256)))
         self.resize(1260, 860)
         self.setMinimumSize(980, 640)
-        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
+        self.setLayoutDirection(DIR)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -64,8 +65,8 @@ class MainWindow(QMainWindow):
         self.settings_page = SettingsPage(ctx)
         self.about = AboutPage()
         self.nav_btns: list[QPushButton] = []
-        for i, (text, page) in enumerate((("🔍  بررسی ویدیو", self.check), ("🛠  ابزارهای یوتیوبر", self.tools),
-                                         ("🕘  تاریخچه", self.hist), ("📜  قوانین", self.rules), ("⚙  تنظیمات", self.settings_page), ("💬  درباره سازنده", self.about))):
+        for i, (text, page) in enumerate(((tr("🔍  بررسی ویدیو"), self.check), (tr("🛠  ابزارهای یوتیوبر"), self.tools),
+                                         (tr("🕘  تاریخچه"), self.hist), (tr("📜  قوانین"), self.rules), (tr("⚙  تنظیمات"), self.settings_page), (tr("💬  درباره سازنده"), self.about))):
             b = QPushButton(text)
             b.setProperty("nav", True)
             b.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -95,12 +96,12 @@ class MainWindow(QMainWindow):
     def update_ai_state(self):
         ok, why = self.ctx.ai_ready()
         name = "Gemini" if self.ctx.settings["provider"] == "gemini" else "OpenAI-compatible"
-        self.ai_state.setText(f"● AI: {name} آماده" if ok else "○ AI تنظیم نشده (تنظیمات)")
+        self.ai_state.setText(tr(f"● AI: {name} آماده") if ok else tr("○ AI تنظیم نشده (تنظیمات)"))
 
     def apply_theme(self):
         name = self.ctx.settings["theme"]
         QApplication.instance().setStyleSheet(qss(name, self.font_family))
-        self.theme_btn.setText("☀  حالت روشن" if name == "dark" else "🌙  حالت تیره")
+        self.theme_btn.setText(tr("☀  حالت روشن") if name == "dark" else tr("🌙  حالت تیره"))
         self.check.set_theme(name)
         for b in self.nav_btns:
             repolish(b)

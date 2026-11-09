@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PyQt6.QtCore import QThread, pyqtSignal
 
+from .i18n import DIR, IS_RTL, tr
 from . import analysis
 from .ai_engine import AIError, get_provider, robust_json
 from .local_checks import (Cancelled, best_thumbnail_frames, compress_for_upload, convert_to_vertical, find_ffmpeg,
@@ -36,11 +37,11 @@ class BaseWorker(QThread):
         try:
             self.done.emit(self.work())
         except Cancelled:
-            self.failed.emit("لغو شد.")
+            self.failed.emit(tr("لغو شد."))
         except AIError as e:
             self.failed.emit(str(e))
         except Exception as e:  # noqa: BLE001
-            self.failed.emit(f"خطای غیرمنتظره: {type(e).__name__}: {e}")
+            self.failed.emit(tr(f"خطای غیرمنتظره: {type(e).__name__}: {e}"))
 
     def work(self):  # pragma: no cover
         raise NotImplementedError
@@ -50,7 +51,7 @@ def ensure_ref(settings, path: str, info: dict, ffmpeg: str, progress, cancel, c
     """Returns an AI reference for the video (uploads / extracts frames if needed)."""
     prov = get_provider(settings)
     if cached and prov.ref_valid(cached):
-        progress(100, "از آپلود قبلی استفاده شد")
+        progress(100, tr("از آپلود قبلی استفاده شد"))
         return prov, cached
     proxy = None
     tmpdir = None
@@ -80,7 +81,7 @@ class AnalyzeWorker(BaseWorker):
     def work(self):
         ffmpeg = find_ffmpeg(self.settings["ffmpeg_path"])
         if not ffmpeg:
-            raise AIError("ffmpeg پیدا نشد. در تنظیمات مسیرش رو بده یا `pip install imageio-ffmpeg` رو اجرا کن.")
+            raise AIError(tr("ffmpeg پیدا نشد. در تنظیمات مسیرش رو بده یا `pip install imageio-ffmpeg` رو اجرا کن."))
         others = self.history.other_fingerprints(self.path)
         local = run_local_checks(self.path, self.fmt, ffmpeg, others,
                                  lambda p, t: self.progress.emit(int(p * 0.35), t), self.is_cancelled)
@@ -91,7 +92,7 @@ class AnalyzeWorker(BaseWorker):
                 prov, ref = ensure_ref(self.settings, self.path, local["info"], ffmpeg,
                                        lambda p, t: self.progress.emit(35 + int(p * 0.35), t), self.is_cancelled, self.cached_ref)
                 self.ref = ref
-                self.progress.emit(72, "AI در حال بررسی ویدیو با قوانین یوتیوب…")
+                self.progress.emit(72, tr("AI در حال بررسی ویدیو با قوانین یوتیوب…"))
                 summary = {"duration_sec": round(local["info"]["duration"]), "resolution": f'{local["info"]["width"]}x{local["info"]["height"]}',
                            "fps": round(local["info"]["fps"], 1), "orientation": local["info"]["orientation"],
                            "loudness_lufs": local["audio"].get("lufs"), "metrics": local["metrics"],
@@ -103,7 +104,7 @@ class AnalyzeWorker(BaseWorker):
                 text = prov.generate(ref, ANALYSIS_SYSTEM, prompt, True, self.is_cancelled)
                 ai = analysis.normalize_ai(robust_json(text))
                 model = self.settings["gemini_model"] if prov.name == "gemini" else self.settings["openai_model"]
-                self.progress.emit(97, "ساخت گزارش…")
+                self.progress.emit(97, tr("ساخت گزارش…"))
             except Cancelled:
                 raise
             except AIError as e:
@@ -112,7 +113,7 @@ class AnalyzeWorker(BaseWorker):
                                        ai=ai, ai_error=ai_err, provider=self.settings["provider"], model=model)
         rep["fingerprints"] = local["fingerprints"]
         rep["ref"] = self.ref
-        self.progress.emit(100, "تمام شد")
+        self.progress.emit(100, tr("تمام شد"))
         return rep
 
 
@@ -128,7 +129,7 @@ class FollowUpWorker(BaseWorker):
         rep = self.report
         prov, ref = ensure_ref(self.settings, rep["path"], rep["info"], ffmpeg, lambda p, t: self.progress.emit(int(p * 0.5), t),
                                self.is_cancelled, self.ref)
-        self.progress.emit(55, "AI با پاسخ‌های تو دوباره بررسی می‌کنه…")
+        self.progress.emit(55, tr("AI با پاسخ‌های تو دوباره بررسی می‌کنه…"))
         summary = {"duration_sec": round(rep["info"]["duration"]), "metrics": rep["metrics"], "metadata_flags": rep["meta"]}
         prev = {k: rep["ai"][k] for k in ("overall_risk_score", "summary", "findings", "disclosure") if rep.get("ai")}
         prompt = build_analysis_prompt(rep["format"], rep["answers"], summary, self.clar, prev,
@@ -153,11 +154,11 @@ class ToolWorker(BaseWorker):
     def work(self):
         ffmpeg = find_ffmpeg(self.settings["ffmpeg_path"])
         if not ffmpeg:
-            raise AIError("ffmpeg پیدا نشد.")
+            raise AIError(tr("ffmpeg پیدا نشد."))
         info = media_info(self.path, ffmpeg)
         prov, ref = ensure_ref(self.settings, self.path, info, ffmpeg, lambda p, t: self.progress.emit(int(p * 0.7), t),
                                self.is_cancelled, self.cached_ref)
-        self.progress.emit(75, "AI در حال نوشتن…")
+        self.progress.emit(75, tr("AI در حال نوشتن…"))
         text = prov.generate(ref, TOOLS_SYSTEM, build_tool_prompt(self.tool_id, self.out_lang, self.extra), False,
                              self.is_cancelled, temperature=0.7)
         return {"text": text, "ref": ref}
@@ -172,7 +173,7 @@ class ThumbWorker(BaseWorker):
         import cv2
         ffmpeg = find_ffmpeg(self.settings["ffmpeg_path"])
         info = media_info(self.path, ffmpeg)
-        self.progress.emit(20, "جستجوی بهترین فریم‌ها…")
+        self.progress.emit(20, tr("جستجوی بهترین فریم‌ها…"))
         picks = best_thumbnail_frames(self.path, info["duration"], self.count)
         outs = []
         Path(self.out_dir).mkdir(parents=True, exist_ok=True)
@@ -217,7 +218,7 @@ class InfoWorker(BaseWorker):
     def work(self):
         ffmpeg = find_ffmpeg(self.settings["ffmpeg_path"])
         if not ffmpeg:
-            raise AIError("ffmpeg پیدا نشد. «pip install imageio-ffmpeg» رو اجرا کن یا مسیر ffmpeg رو در تنظیمات بده.")
+            raise AIError(tr("ffmpeg پیدا نشد. «pip install imageio-ffmpeg» رو اجرا کن یا مسیر ffmpeg رو در تنظیمات بده."))
         info = media_info(self.path, ffmpeg)
         fmt, amb = guess_format(info)
         return {"info": info, "fmt": fmt, "ambiguous": amb}

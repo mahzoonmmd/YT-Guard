@@ -34,6 +34,7 @@ Titles, description, tags, chapters, thumbnail ideas, best Shorts cuts, hook imp
 - **Google Gemini API** (free tier, native video + audio understanding) – recommended
 - Any **OpenAI-compatible** endpoint (OpenRouter, Groq, local…) – frames only, no audio
 - Works **without AI** too: local analysis + rules questionnaire run offline
+- **UI languages:** Persian (RTL) and English (Settings → Language, restart to apply)
 
 ### Install (Windows)
 1. Install Python 3.10+ (tick *Add to PATH*)
@@ -71,6 +72,7 @@ Build an `.exe`: run `build_exe.bat` on Windows.
 - **Google Gemini API** (پلن رایگان، فهم مستقیم ویدیو و صدا) – پیشنهادی
 - هر سرویس **OpenAI-compatible** (OpenRouter، Groq، محلی…) – فقط فریم‌ها، بدون صدا
 - **بدون AI هم کار می‌کنه**: تحلیل محلی و پرسشنامه قوانین آفلاین اجرا می‌شن
+- **زبان برنامه:** فارسی و انگلیسی (تنظیمات → زبان؛ برای اعمال، برنامه رو دوباره باز کن)
 
 ### نصب (ویندوز)
 1. Python 3.10+ نصب کن (تیک Add to PATH)
