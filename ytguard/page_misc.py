@@ -4,7 +4,7 @@ from __future__ import annotations
 import time
 
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QListWidget,
                              QListWidgetItem, QMessageBox, QPushButton, QScrollArea, QSpinBox, QVBoxLayout, QWidget)
 
 from .i18n import DIR, IS_RTL, tr
@@ -128,6 +128,7 @@ class SettingsPage(QWidget):
         self.language.setCurrentIndex(0 if (s["language"] or "fa") == "fa" else 1)
         lc.lay.addWidget(self.language)
         lay.addWidget(lc)
+        self.language.currentIndexChanged.connect(self.on_language_changed)
 
         # --- provider
         pc = Card(tr("موتور AI"))
@@ -201,6 +202,25 @@ class SettingsPage(QWidget):
         lay.addWidget(label(tr(f"{APP_NAME_FA} نسخه {APP_VERSION}"), muted=True))
         lay.addStretch(1)
         self.update_ff_status()
+
+    def on_language_changed(self):
+        """Save immediately and offer a restart (the language is applied at startup)."""
+        import sys
+        from PyQt6.QtCore import QProcess
+        from .i18n import LANG
+        s = self.ctx.settings
+        s["language"] = self.language.currentData()
+        s.save()
+        if s["language"] == LANG:
+            return
+        box = QMessageBox(self)
+        box.setWindowTitle("Language / زبان")
+        box.setText("Language saved. Restart the app now to apply it?\nزبان ذخیره شد. برای اعمال، برنامه الان دوباره باز بشه؟")
+        box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if box.exec() == QMessageBox.StandardButton.Yes:
+            args = sys.argv[1:] if getattr(sys, "frozen", False) else sys.argv
+            QProcess.startDetached(sys.executable, args)
+            QApplication.quit()
 
     def update_ff_status(self):
         p = find_ffmpeg(self.ff.text().strip())
