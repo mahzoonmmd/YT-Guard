@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+venv/
+.venv/
+build/
+dist/
+*.spec
+.idea/
+.vscode/
+YTGuard_thumbnails/
+*_report.html
+*_report.json
+settings.json
+history.json
