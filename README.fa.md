@@ -121,6 +121,6 @@ tests/                  تست‌های سرور ساختگی و تحلیل مح
 ## حمایت از پروژه
 اگه YT Guard جلوی یه آپلود ردشده رو گرفت، به ریپو **Star ⭐** بده و **[@mahzoonmmd](https://github.com/mahzoonmmd)** رو **Follow** کن. Issue و ایده خوشحالمون می‌کنه.
 
-ساخته‌شده توسط **محمدعلی محزون** · فونت: [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (SIL OFL)
+مجوز: [MIT](LICENSE). ساخته‌شده توسط **محمدعلی محزون** · فونت: [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (SIL OFL)
 
 </div>

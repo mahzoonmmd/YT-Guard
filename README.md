@@ -9,7 +9,7 @@ Check videos against YouTube's rules *before* you upload, find out why a video i
 
 [English](README.md) · [فارسی](README.fa.md)
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-red) ![PyQt6](https://img.shields.io/badge/UI-PyQt6-red) ![Platform](https://img.shields.io/badge/Platform-Windows-black) ![AI](https://img.shields.io/badge/AI-Gemini%20(free%20tier)-black) ![Languages](https://img.shields.io/badge/UI-Persian%20%7C%20English-red)
+![Python](https://img.shields.io/badge/Python-3.10%2B-red) ![PyQt6](https://img.shields.io/badge/UI-PyQt6-red) ![Platform](https://img.shields.io/badge/Platform-Windows-black) ![AI](https://img.shields.io/badge/AI-Gemini%20(free%20tier)-black) ![License](https://img.shields.io/badge/License-MIT-black) ![Languages](https://img.shields.io/badge/UI-Persian%20%7C%20English-red)
 
 <img src="docs/screenshot-dark.png" width="49%" alt="Dark theme"> <img src="docs/screenshot-light.png" width="49%" alt="Light theme">
 
@@ -121,4 +121,4 @@ tests/                  mock-server and local-analysis tests
 ## Support the project
 If YT Guard saves you a rejected upload, please **star ⭐ the repository** and **follow [@mahzoonmmd](https://github.com/mahzoonmmd)**. Issues and ideas are welcome.
 
-Made by **Mohammadali Mahzoon** · UI font: [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (SIL OFL)
+Released under the [MIT License](LICENSE). Made by **Mohammadali Mahzoon** · UI font: [Vazirmatn](https://github.com/rastikerdar/vazirmatn) (SIL OFL)
